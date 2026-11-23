@@ -1,0 +1,16 @@
+# Normalize line endings so checkouts are byte-identical on every OS.
+* text=auto eol=lf
+
+# Windows-only scripts must keep CRLF or cmd.exe may fail.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+# Binary assets: never touch.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.jar binary
+*.keystore binary
+*.jks binary

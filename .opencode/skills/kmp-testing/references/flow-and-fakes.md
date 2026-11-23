@@ -4,18 +4,36 @@ Reference for `kmp-testing`. All code is `commonTest`.
 
 ## Dependencies
 
-```kotlin
-// commonTest
-implementation(kotlin("test"))
-implementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:<coroutines>")
-implementation("app.cash.turbine:turbine:<turbine>")
+```toml
+# gradle/libs.versions.toml
+[versions]
+coroutines = "1.11.0"
+turbine = "1.2.1"
+mockk = "1.14.7"        # verify the latest stable when you add it
+junit5 = "5.14.0"       # verify the latest stable when you add it
+
+[libraries]
+kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
+turbine = { module = "app.cash.turbine:turbine", version.ref = "turbine" }
 ```
 
 ```kotlin
-// androidUnitTest / jvmTest only
-implementation("io.mockk:mockk:<mockk>")
-implementation("org.junit.jupiter:junit-jupiter:<junit5>")
+// commonTest
+implementation(kotlin("test"))
+implementation(libs.kotlinx.coroutines.test)
+implementation(libs.turbine)
 ```
+
+```kotlin
+// androidUnitTest / jvmTest only — never commonTest
+implementation(libs.mockk)
+implementation(libs.junit.jupiter)   // JUnit 5 needs the junit5 Gradle plugin
+```
+
+`kotlin("test")` is provided by the Kotlin plugin; it needs no catalog entry and
+resolves to `kotlin.test` on every target. The MockK and JUnit 5 versions above are
+placeholders in the sense that they change often — check Maven Central before adding
+them, and never move either into `commonTest`.
 
 ## A fake with controllable failure and emissions
 

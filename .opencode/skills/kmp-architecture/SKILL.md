@@ -60,7 +60,7 @@ composeApp/src/
 │       └── theme/
 ├── androidMain/kotlin/...     # MainActivity, Android actuals
 ├── iosMain/kotlin/...         # MainViewController, Darwin actuals
-└── jvmMain/kotlin/...         # main(), CIO actuals
+└── desktopMain/kotlin/...     # main(), CIO actuals
 ```
 
 Rules:
@@ -157,7 +157,7 @@ Entry points are platform glue and belong in platform source sets.
 
 - `androidMain`: `MainActivity` calls `startKoin` (or reuses an `Application`), then `setContent { App() }`.
 - `iosMain`: `MainViewController()` returns a `ComposeUIViewController { App() }`.
-- `jvmMain`: `application { Window { App() } }` and `main()`.
+- `desktopMain`: `application { Window { App() } }` and `main()`.
 
 Prefer:
 

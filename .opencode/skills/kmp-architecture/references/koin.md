@@ -4,17 +4,31 @@ Reference for `kmp-architecture`. Koin 4.x, multiplatform, no annotation process
 
 ## Dependencies
 
-```kotlin
-// commonMain
-implementation("io.insert-koin:koin-core:4.1.1")
-implementation("io.insert-koin:koin-compose:4.1.1")
-implementation("io.insert-koin:koin-compose-viewmodel:4.1.1")
+```toml
+# gradle/libs.versions.toml
+[versions]
+koin = "4.2.2"
 
-// androidMain
-implementation("io.insert-koin:koin-android:4.1.1")
+[libraries]
+koin-core = { module = "io.insert-koin:koin-core", version.ref = "koin" }
+koin-compose = { module = "io.insert-koin:koin-compose", version.ref = "koin" }
+koin-compose-viewmodel = { module = "io.insert-koin:koin-compose-viewmodel", version.ref = "koin" }
+koin-android = { module = "io.insert-koin:koin-android", version.ref = "koin" }
 ```
 
-`koin-compose-viewmodel` is what makes `koinViewModel()` available on every target, including iOS and desktop. Without it you get `koin-compose` only, and no ViewModel scoping.
+```kotlin
+// commonMain
+implementation(libs.koin.core)
+implementation(libs.koin.compose)
+implementation(libs.koin.compose.viewmodel)
+
+// androidMain
+implementation(libs.koin.android)
+```
+
+All four artifacts share one version. `koin-compose-viewmodel` is what makes
+`koinViewModel()` available on every target, including iOS and desktop. Without it you
+get `koin-compose` only, and no ViewModel scoping.
 
 ## Modules
 
@@ -79,7 +93,7 @@ class App : Application() {
 fun initKoin() = startKoin { modules(appModules, iosPlatformModule) }
 fun MainViewController() = ComposeUIViewController { App() }
 
-// jvmMain
+// desktopMain
 fun main() = application {
     startKoin { modules(appModules, jvmPlatformModule) }
     Window(onCloseRequest = ::exitApplication) { App() }
@@ -99,7 +113,7 @@ val iosPlatformModule = module {
     single<Notifications> { IosNotifications() }
 }
 
-// jvmMain
+// desktopMain
 val jvmPlatformModule = module {
     single<Notifications> { DesktopNotifications() }
 }

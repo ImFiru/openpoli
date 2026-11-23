@@ -4,22 +4,52 @@ Reference for `kmp-patterns`. Everything below is `commonMain` unless a source s
 
 ## Dependencies
 
+Versions live in `gradle/libs.versions.toml`, never inline. The block below is a
+starting catalog; the versions were current when written and should be bumped
+together, not one at a time.
+
+```toml
+# gradle/libs.versions.toml
+[versions]
+ktor = "3.6.1"
+room3 = "3.0.3"
+sqlite = "2.7.1"
+kotlin = "2.4.20"
+
+[libraries]
+ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
+ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
+ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
+ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor" }
+ktor-client-darwin = { module = "io.ktor:ktor-client-darwin", version.ref = "ktor" }
+ktor-client-cio = { module = "io.ktor:ktor-client-cio", version.ref = "ktor" }
+room3-runtime = { module = "androidx.room3:room3-runtime", version.ref = "room3" }
+room3-compiler = { module = "androidx.room3:room3-compiler", version.ref = "room3" }
+androidx-sqlite-bundled = { module = "androidx.sqlite:sqlite-bundled", version.ref = "sqlite" }
+```
+
 ```kotlin
 // commonMain
-implementation("io.ktor:ktor-client-core:<ktor>")
-implementation("io.ktor:ktor-client-content-negotiation:<ktor>")
-implementation("io.ktor:ktor-serialization-kotlinx-json:<ktor>")
-implementation("androidx.room3:room3-runtime:3.0.3")
-implementation("androidx.sqlite:sqlite-bundled:2.7.1")
-ksp("androidx.room3:room3-compiler:3.0.3")
+implementation(libs.ktor.client.core)
+implementation(libs.ktor.client.content.negotiation)
+implementation(libs.ktor.serialization.kotlinx.json)
+implementation(libs.room3.runtime)
+implementation(libs.androidx.sqlite.bundled)
+ksp(libs.room3.compiler)
 
 // androidMain
-implementation("io.ktor:ktor-client-okhttp:<ktor>")
+implementation(libs.ktor.client.okhttp)
 // iosMain
-implementation("io.ktor:ktor-client-darwin:<ktor>")
-// jvmMain
-implementation("io.ktor:ktor-client-cio:<ktor>")
+implementation(libs.ktor.client.darwin)
+// desktopMain
+implementation(libs.ktor.client.cio)
 ```
+
+Rules:
+
+- KSP and the Room 3 compiler must match the Kotlin version you compile with; bump them in the same commit as Kotlin.
+- Ktor engine artifacts are per target; never add `ktor-client-okhttp` outside `androidMain`.
+- One catalog entry per module: no version strings in `build.gradle.kts`.
 
 Room 3 publishes `android`, `jvm`, `iosArm64` and `iosSimulatorArm64` variants, so the runtime and DAOs stay in `commonMain`. KSP only — never KAPT, never Java annotation processing. Room 3 generates Kotlin.
 
@@ -54,7 +84,7 @@ actual fun httpClientEngine(): HttpClientEngineFactory<*> = OkHttp
 // iosMain
 actual fun httpClientEngine(): HttpClientEngineFactory<*> = Darwin
 
-// jvmMain
+// desktopMain
 actual fun httpClientEngine(): HttpClientEngineFactory<*> = CIO
 ```
 
@@ -156,7 +186,7 @@ actual fun databasePath(): String {
     return "${dir.path}/app.db"
 }
 
-// jvmMain
+// desktopMain
 actual fun databasePath(): String {
     val dir = File(System.getProperty("user.dir"), "build/app-data").apply { mkdirs() }
     return File(dir, "app.db").absolutePath

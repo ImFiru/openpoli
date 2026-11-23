@@ -33,6 +33,9 @@ is assumed to be `composeApp` — adjust the commands if the Gradle layout diffe
 Lint: run the project's configured formatter/static analysis (`ktlint`, `detekt`) when
 present; do not introduce a new lint tool as part of an unrelated change.
 
+On Windows PowerShell, invoke `.\gradlew.bat` — the extension-less `./gradlew` is a
+bash/zsh script and will not run there. In Git Bash or WSL, `./gradlew` works.
+
 On Windows or Linux, skip the iOS tasks and say so in the summary. Apple targets cannot
 compile off macOS.
 

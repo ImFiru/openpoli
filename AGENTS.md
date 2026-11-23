@@ -17,7 +17,27 @@ machine, not on the Windows dev host.
 
 Targets: `androidTarget()`, `iosArm64()`, `iosSimulatorArm64()`, and one `jvm("desktop")`
 covering Windows, macOS and Linux. No native desktop targets, no web. The shared module
-is assumed to be `composeApp` — adjust the commands if the Gradle layout differs.
+is `composeApp`.
+
+### Toolchain pins (verified building on this machine)
+
+| Piece | Version |
+| --- | --- |
+| Kotlin / Compose compiler | 2.4.20 |
+| Compose Multiplatform | 1.13.0-rc01 |
+| material3 | 1.13.0-rc01 |
+| Android Gradle Plugin | 9.5.2 |
+| Gradle wrapper | 9.6.1 |
+| compileSdk / targetSdk | 37 with `compileSdkMinor = 1` (i.e. 37.1) |
+| minSdk | 24 |
+| Koin | 4.2.2 |
+| Ktor | 3.6.1 |
+| Room 3 / bundled SQLite | 3.0.3 / 2.7.1 |
+
+AGP 9 rejects `com.android.application` + Kotlin Multiplatform unless
+`android.builtInKotlin=false` and `android.newDsl=false` are set in `gradle.properties`;
+both are required and already present. Compose 1.13 artifacts also require compiling
+against API 37.1 or newer, which is why `compileSdkMinor` is set.
 
 ## Build, test, lint
 
@@ -36,8 +56,9 @@ present; do not introduce a new lint tool as part of an unrelated change.
 On Windows PowerShell, invoke `.\gradlew.bat` — the extension-less `./gradlew` is a
 bash/zsh script and will not run there. In Git Bash or WSL, `./gradlew` works.
 
-On Windows or Linux, skip the iOS tasks and say so in the summary. Apple targets cannot
-compile off macOS.
+On Windows or Linux, skip the iOS tasks and say so in the summary. Apple targets are
+disabled on those hosts, so the iOS tasks do not exist at all and `task not found` is the
+expected output — that is not a broken build.
 
 ## KMP rules (overrides Android-only habits)
 

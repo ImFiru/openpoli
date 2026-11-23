@@ -117,7 +117,9 @@ private fun FeatureContentPreview() {
 }
 ```
 
-Use `@Preview` from `org.jetbrains.compose.ui.tooling.preview`. Preview the theme, the loading, empty and error states — not just the happy path.
+Use `@Preview` from `androidx.compose.ui.tooling.preview` (Compose Multiplatform re-exports
+it; `org.jetbrains.compose.ui.tooling.preview.Preview` is deprecated). Preview the theme,
+the loading, empty and error states — not just the happy path.
 
 ## 5. Verify against the design
 

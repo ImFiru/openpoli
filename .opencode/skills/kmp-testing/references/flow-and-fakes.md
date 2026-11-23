@@ -71,6 +71,10 @@ Rules:
 
 ### StateFlow: assert every state
 
+`StateFlow` replays its current value when collection starts. Seed the fake before
+collecting, then assert that replay as the first `awaitItem()` — do not emit after the
+collector starts and expect the emission to be the first item.
+
 ```kotlin
 @Test
 fun `When data loads then state goes loading to loaded`() = runTest {

@@ -131,7 +131,14 @@ Run from the repo root. Module name is `composeApp`; adjust if the project diffe
 ./gradlew :composeApp:linkDebugFrameworkIosSimulatorArm64 :composeApp:iosSimulatorArm64Test
 ```
 
-On a non-macOS host, **skip step 4** and state it explicitly: Apple targets cannot compile on Windows or Linux. Android and desktop still prove the shared code is coherent; iOS linking is verified in CI or on a Mac before release.
+On a non-macOS host, **skip step 4**. Apple targets are disabled there, so the tasks do
+not exist and Gradle reports `task not found` — that is expected, not a failure. Android
+and desktop still prove the shared code is coherent; iOS linking is verified in CI or on
+a Mac before release.
+
+iOS also needs `binaries.framework { baseName = "ComposeApp"; isStatic = true }` on each
+Apple target, plus an Xcode project that consumes it. The framework configuration is
+already present; the Xcode project is not.
 
 Also confirm:
 

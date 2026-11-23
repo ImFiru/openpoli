@@ -9,6 +9,10 @@ node_modules/
 .gradle/
 build/
 local.properties
+.kotlin/
+.idea/
+*.iml
+*.hprof
 
 # OS / editor noise
 .DS_Store

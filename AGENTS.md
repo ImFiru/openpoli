@@ -132,6 +132,42 @@ On Windows or Linux, skip the iOS tasks and say so in the summary. Apple targets
 disabled on those hosts, so the iOS tasks do not exist at all and `task not found` is the
 expected output — that is not a broken build.
 
+## Commits
+
+A commit is a unit of review, not a dump of a session. Someone must be able to read the
+subject line, skim the diff and understand the change without asking what happened.
+
+Size:
+
+- Aim for **under 300 changed lines**; treat **400 as the ceiling** for a normal commit.
+- Check before committing: `git diff --cached --stat`. If it exceeds the ceiling, split it.
+- Exceptions, kept isolated in their own commit and named as such: mechanical reformatting
+  (`ktlintFormat` across many files), generated files (`shared/schemas`), a dependency bump,
+  or a framework migration.
+- Never commit generated or build output.
+
+Shape:
+
+- One logical change per commit. Do not mix a feature, a refactor and a dependency bump.
+- Split by layer when a feature spans them: domain and data, then presentation and UI, then
+  tests, then docs. Each commit must build and pass `./gradlew check` on its own — no broken
+  intermediate commits, no "will fix in the next one".
+- Refactoring that prepares a change goes before the change, in its own commit.
+- Docs, skills and `AGENTS.md` updates go with the change they describe, or in their own
+  commit when they stand alone.
+
+Message:
+
+- Subject: imperative mood, at most 72 characters, no trailing period
+  (`Import the Penpot M3 Expressive tokens into the theme`).
+- Body: explain **why** and what the reader should know; wrap at 72–100 characters. Bullets
+  are fine. The diff already shows the how.
+- Say what is deliberately out of scope when it matters (`iOS is not built — no macOS host`).
+- No `wip`, `fixes`, `stuff`, or a bare ticket number as the subject.
+
+When a request is inherently large, propose the split before starting instead of producing
+one commit nobody will review: "this is three commits: schema, repository, screen".
+
 ## KMP rules (overrides Android-only habits)
 
 - Layers: `ui -> presentation -> domain <- data`. `domain` is pure Kotlin — no

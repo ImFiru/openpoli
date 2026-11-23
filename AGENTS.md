@@ -116,9 +116,10 @@ entry only.
 git config core.hooksPath .githooks    # once per clone
 ```
 
-`.githooks/pre-commit` runs `:shared:ktlintCheck` only — fast, formatting-only, so a commit
-fails in seconds instead of turning CI red minutes later. Tests and detekt stay in CI and in
-`./gradlew check`. Bypass deliberately with `git commit --no-verify`; CI remains the gate.
+`.githooks/pre-commit` runs `:shared:ktlintCheck :shared:detekt` — about 4s warm, 8s cold — so
+formatting and static-analysis failures stop a commit locally instead of turning CI red
+minutes later. Tests stay in CI and in `./gradlew check`. Bypass deliberately with
+`git commit --no-verify`; CI remains the gate.
 
 On Windows PowerShell, invoke `.\gradlew.bat` — the extension-less `./gradlew` is a
 bash/zsh script and will not run there. In Git Bash or WSL, `./gradlew` works.

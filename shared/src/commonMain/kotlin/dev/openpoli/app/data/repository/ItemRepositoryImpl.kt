@@ -13,9 +13,7 @@ internal class ItemRepositoryImpl(
     private val dao: ItemDao,
     private val mapper: ItemMapper,
 ) : ItemRepository {
-
-    override fun observeItems(): Flow<List<Item>> =
-        dao.observeAll().map { entities -> entities.map(mapper::toDomain) }
+    override fun observeItems(): Flow<List<Item>> = dao.observeAll().map { entities -> entities.map(mapper::toDomain) }
 
     override suspend fun refresh(): Result<Unit> =
         api.fetchItems().map { dtos ->

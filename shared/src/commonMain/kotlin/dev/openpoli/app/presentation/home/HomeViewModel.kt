@@ -11,11 +11,12 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
+private const val STOP_TIMEOUT_MILLIS = 5_000L
+
 internal class HomeViewModel(
     observeItems: ObserveItemsUseCase,
     private val refreshItems: RefreshItemsUseCase,
 ) : ViewModel() {
-
     private val isRefreshing = MutableStateFlow(false)
     private val errorMessage = MutableStateFlow<String?>(null)
 
@@ -29,7 +30,7 @@ internal class HomeViewModel(
             )
         }.stateIn(
             scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5_000),
+            started = SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS),
             initialValue = HomeUiState(),
         )
 

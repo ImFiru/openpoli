@@ -20,9 +20,10 @@ internal class KtorItemApi(
     private val client: HttpClient,
     private val baseUrl: String = "https://jsonplaceholder.typicode.com",
 ) : ItemApi {
-    override suspend fun fetchItems(): Result<List<ItemDto>> = runCatching {
-        val response = client.get("$baseUrl/todos")
-        check(response.status.isSuccess()) { "HTTP ${response.status.value}" }
-        response.body<List<ItemDto>>()
-    }
+    override suspend fun fetchItems(): Result<List<ItemDto>> =
+        runCatching {
+            val response = client.get("$baseUrl/todos")
+            check(response.status.isSuccess()) { "HTTP ${response.status.value}" }
+            response.body<List<ItemDto>>()
+        }
 }

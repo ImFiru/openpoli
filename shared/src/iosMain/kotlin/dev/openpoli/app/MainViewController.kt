@@ -12,6 +12,7 @@ fun initKoin() {
     }
 }
 
+@Suppress("ktlint:standard:function-naming", "FunctionNaming")
 fun MainViewController(): UIViewController {
     initKoin()
     return ComposeUIViewController { App() }

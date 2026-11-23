@@ -35,36 +35,38 @@ internal class ObserveItemsUseCaseTest {
     }
 
     @Test
-    fun `When repository emits items then use case emits them in order`() = runTest {
-        // create objects and fakes
-        val expected = listOf(Item(id = 1, title = "A"), Item(id = 2, title = "B"))
+    fun `When repository emits items then use case emits them in order`() =
+        runTest {
+            // create objects and fakes
+            val expected = listOf(Item(id = 1, title = "A"), Item(id = 2, title = "B"))
 
-        // configure fake behavior
-        repository.emit(expected)
+            // configure fake behavior
+            repository.emit(expected)
 
-        // execute
-        val actual = sut().first()
+            // execute
+            val actual = sut().first()
 
-        // assert
-        assertEquals(expected = expected, actual = actual)
-    }
+            // assert
+            assertEquals(expected = expected, actual = actual)
+        }
 
     @Test
-    fun `When repository emits twice then every value is observed`() = runTest {
-        // create objects and fakes
-        val first = listOf(Item(id = 1, title = "A"))
-        val second = first + Item(id = 2, title = "B")
+    fun `When repository emits twice then every value is observed`() =
+        runTest {
+            // create objects and fakes
+            val first = listOf(Item(id = 1, title = "A"))
+            val second = first + Item(id = 2, title = "B")
 
-        // configure fake behavior: StateFlow replays its current value on collect
-        repository.emit(first)
+            // configure fake behavior: StateFlow replays its current value on collect
+            repository.emit(first)
 
-        sut().test {
-            assertEquals(expected = first, actual = awaitItem())
+            sut().test {
+                assertEquals(expected = first, actual = awaitItem())
 
-            repository.emit(second)
-            assertEquals(expected = second, actual = awaitItem())
+                repository.emit(second)
+                assertEquals(expected = second, actual = awaitItem())
 
-            cancelAndIgnoreRemainingEvents()
+                cancelAndIgnoreRemainingEvents()
+            }
         }
-    }
 }

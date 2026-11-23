@@ -6,6 +6,7 @@ import dev.openpoli.app.domain.model.Item
 
 internal interface ItemMapper {
     fun toDomain(entity: ItemEntity): Item
+
     fun toEntity(dto: ItemDto): ItemEntity
 }
 

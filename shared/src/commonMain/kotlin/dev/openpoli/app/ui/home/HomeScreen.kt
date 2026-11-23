@@ -14,6 +14,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.openpoli.app.platform.AppInfo
@@ -22,7 +23,6 @@ import dev.openpoli.app.presentation.home.HomeUiState
 import dev.openpoli.app.presentation.home.HomeViewModel
 import dev.openpoli.app.presentation.home.ItemUiState
 import dev.openpoli.app.ui.theme.AppTheme
-import androidx.compose.ui.tooling.preview.Preview
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -86,13 +86,15 @@ internal fun HomeContent(
 private fun HomeContentPreview() {
     AppTheme {
         HomeContent(
-            uiState = HomeUiState(
-                items = listOf(
-                    ItemUiState(id = 1, title = "Ship the scaffold"),
-                    ItemUiState(id = 2, title = "Map Penpot tokens"),
+            uiState =
+                HomeUiState(
+                    items =
+                        listOf(
+                            ItemUiState(id = 1, title = "Ship the scaffold"),
+                            ItemUiState(id = 2, title = "Map Penpot tokens"),
+                        ),
+                    isLoading = false,
                 ),
-                isLoading = false,
-            ),
             platform = "Preview",
             onAction = {},
         )

@@ -8,7 +8,8 @@ actual fun createDatabase(): AppDatabase {
     val directory = File(System.getProperty("user.home"), ".openpoli").apply { mkdirs() }
     val file = File(directory, "openpoli.db")
 
-    return Room.databaseBuilder<AppDatabase>(name = file.absolutePath)
+    return Room
+        .databaseBuilder<AppDatabase>(name = file.absolutePath)
         .setDriver(BundledSQLiteDriver())
         .fallbackToDestructiveMigration(dropAllTables = true)
         .build()

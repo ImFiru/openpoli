@@ -38,6 +38,9 @@ jobs:
           yes | "$SDKMANAGER" --licenses > /dev/null
           "$SDKMANAGER" "platforms;android-37.1" "build-tools;36.0.0"
 
+      - name: Lint
+        run: ./gradlew :shared:ktlintCheck :shared:detekt --no-daemon --stacktrace
+
       - name: Assemble Android and run shared tests
         run: |
           ./gradlew :shared:assemble :androidApp:assembleDebug \

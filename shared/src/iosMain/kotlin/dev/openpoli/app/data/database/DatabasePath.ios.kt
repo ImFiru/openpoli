@@ -10,13 +10,15 @@ import platform.Foundation.NSUserDomainMask
 
 @OptIn(ExperimentalForeignApi::class)
 actual fun createDatabase(): AppDatabase {
-    val directories = NSSearchPathForDirectoriesInDomains(
-        directory = NSApplicationSupportDirectory,
-        domainMask = NSUserDomainMask,
-        expandTilde = true,
-    )
-    val directory = directories.firstOrNull() as? String
-        ?: error("No Application Support directory available")
+    val directories =
+        NSSearchPathForDirectoriesInDomains(
+            directory = NSApplicationSupportDirectory,
+            domainMask = NSUserDomainMask,
+            expandTilde = true,
+        )
+    val directory =
+        directories.firstOrNull() as? String
+            ?: error("No Application Support directory available")
 
     NSFileManager.defaultManager.createDirectoryAtPath(
         path = directory,
@@ -25,7 +27,8 @@ actual fun createDatabase(): AppDatabase {
         error = null,
     )
 
-    return Room.databaseBuilder<AppDatabase>(name = "$directory/openpoli.db")
+    return Room
+        .databaseBuilder<AppDatabase>(name = "$directory/openpoli.db")
         .setDriver(BundledSQLiteDriver())
         .fallbackToDestructiveMigration(dropAllTables = true)
         .build()

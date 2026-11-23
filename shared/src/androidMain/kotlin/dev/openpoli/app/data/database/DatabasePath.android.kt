@@ -10,11 +10,11 @@ actual fun createDatabase(): AppDatabase {
     val file = context.getDatabasePath("openpoli.db")
     file.parentFile?.mkdirs()
 
-    return Room.databaseBuilder<AppDatabase>(
-        context = context,
-        name = file.absolutePath,
-    )
-        .setDriver(BundledSQLiteDriver())
+    return Room
+        .databaseBuilder<AppDatabase>(
+            context = context,
+            name = file.absolutePath,
+        ).setDriver(BundledSQLiteDriver())
         .fallbackToDestructiveMigration(dropAllTables = true)
         .build()
 }

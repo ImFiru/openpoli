@@ -7,6 +7,8 @@ plugins {
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.ksp)
+    alias(libs.plugins.ktlint)
+    alias(libs.plugins.detekt)
 }
 
 kotlin {
@@ -20,9 +22,10 @@ kotlin {
     android {
         namespace = "dev.openpoli.app.shared"
         compileSdk {
-            version = release(37) {
-                minorApiLevel = 1
-            }
+            version =
+                release(37) {
+                    minorApiLevel = 1
+                }
         }
         minSdk = 24
 
@@ -120,6 +123,32 @@ dependencies {
 ksp {
     // Room exports its schema JSON here; commit it when migrations begin.
     arg("room.schemaLocation", "$projectDir/schemas")
+}
+
+detekt {
+    buildUponDefaultConfig = true
+    config.setFrom(rootProject.files("config/detekt/detekt.yml"))
+    parallel = true
+    source.setFrom(
+        files(
+            "src/commonMain/kotlin",
+            "src/commonTest/kotlin",
+            "src/androidMain/kotlin",
+            "src/iosMain/kotlin",
+            "src/desktopMain/kotlin",
+        ),
+    )
+}
+
+ktlint {
+    // Never lint generated KSP/Room code or Gradle output.
+    filter {
+        exclude { element ->
+            element.file.path
+                .replace('\\', '/')
+                .contains("/build/")
+        }
+    }
 }
 
 compose.desktop {

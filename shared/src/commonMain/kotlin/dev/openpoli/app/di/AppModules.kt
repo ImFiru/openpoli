@@ -16,34 +16,38 @@ import dev.openpoli.app.presentation.home.HomeViewModel
 import io.ktor.client.HttpClient
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.factoryOf
-import org.koin.core.module.dsl.singleOf
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
 
-val networkModule: Module = module {
-    single<HttpClient> { createHttpClient() }
-    single<ItemApi> { KtorItemApi(get()) }
-}
+val networkModule: Module =
+    module {
+        single<HttpClient> { createHttpClient() }
+        single<ItemApi> { KtorItemApi(get()) }
+    }
 
-val databaseModule: Module = module {
-    single<AppDatabase> { createDatabase() }
-    single<ItemDao> { get<AppDatabase>().itemDao() }
-}
+val databaseModule: Module =
+    module {
+        single<AppDatabase> { createDatabase() }
+        single<ItemDao> { get<AppDatabase>().itemDao() }
+    }
 
-val repositoryModule: Module = module {
-    single<ItemMapper> { DefaultItemMapper() }
-    single<ItemRepository> { ItemRepositoryImpl(get(), get(), get()) }
-}
+val repositoryModule: Module =
+    module {
+        single<ItemMapper> { DefaultItemMapper() }
+        single<ItemRepository> { ItemRepositoryImpl(get(), get(), get()) }
+    }
 
-val featureModule: Module = module {
-    factoryOf(::ObserveItemsUseCase)
-    factoryOf(::RefreshItemsUseCase)
-    viewModelOf(::HomeViewModel)
-}
+val featureModule: Module =
+    module {
+        factoryOf(::ObserveItemsUseCase)
+        factoryOf(::RefreshItemsUseCase)
+        viewModelOf(::HomeViewModel)
+    }
 
-val appModules: List<Module> = listOf(
-    networkModule,
-    databaseModule,
-    repositoryModule,
-    featureModule,
-)
+val appModules: List<Module> =
+    listOf(
+        networkModule,
+        databaseModule,
+        repositoryModule,
+        featureModule,
+    )

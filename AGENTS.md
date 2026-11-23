@@ -84,8 +84,18 @@ debug APK and the test reports on failure.
 CI does not build iOS — GitHub's hosted runners are Linux/macOS, and the macOS runner is
 not configured. A red run means the "done means" list was not met locally.
 
-Lint: run the project's configured formatter/static analysis (`ktlint`, `detekt`) when
-present; do not introduce a new lint tool as part of an unrelated change.
+Lint:
+
+```bash
+./gradlew :shared:ktlintCheck        # formatting, style = ktlint_official
+./gradlew :shared:ktlintFormat       # apply formatting
+./gradlew :shared:detekt             # static analysis, config/detekt/detekt.yml
+```
+
+Rules are in `.editorconfig` (ktlint) and `config/detekt/detekt.yml` (detekt). Both must be
+green before a commit; CI runs them before the build. Compose functions are PascalCase and
+exempt via `ktlint_function_naming_ignore_when_annotated_with = Composable`. Generated KSP
+code is excluded from ktlint.
 
 On Windows PowerShell, invoke `.\gradlew.bat` — the extension-less `./gradlew` is a
 bash/zsh script and will not run there. In Git Bash or WSL, `./gradlew` works.
@@ -140,6 +150,7 @@ Project skills live in `.opencode/skills/`:
 - On Windows/Linux, the iOS step is explicitly reported as skipped, not silently dropped.
 - No `android.*`, `java.*`, `javax.*` or `platform.*` import in `commonMain`.
 - Every new screen has a preview; every new token is in the theme, not inline.
+- `:shared:ktlintCheck` and `:shared:detekt` pass.
 - No unrelated file edits, no reformatting of untouched code, no drive-by dependency bumps.
 
 <!-- trail:start -->

@@ -1,3 +1,89 @@
+# OpenPoli — agent guide
+
+Kotlin Multiplatform app. Android ships first; iOS is built and verified on a macOS
+machine, not on the Windows dev host.
+
+## Stack
+
+| Concern | Choice |
+| --- | --- |
+| UI | Compose Multiplatform, Material 3 (Expressive only where the artifact provides it) |
+| Design source of truth | Penpot, read through the Penpot MCP |
+| Persistence | Room 3 (`androidx.room3`), KSP, suspend/Flow DAOs, `BundledSQLiteDriver` |
+| DI | Koin, modules per feature, no annotation processing |
+| Networking | Ktor Client + kotlinx.serialization, engine via `expect/actual` |
+| Async | Coroutines + Flow; `StateFlow` for state, `SharedFlow`/`Channel` for events |
+| Tests | `kotlin.test` + `kotlinx-coroutines-test` + Turbine + hand-written fakes in `commonTest` |
+
+Targets: `androidTarget()`, `iosArm64()`, `iosSimulatorArm64()`, and one `jvm("desktop")`
+covering Windows, macOS and Linux. No native desktop targets, no web. The shared module
+is assumed to be `composeApp` — adjust the commands if the Gradle layout differs.
+
+## Build, test, lint
+
+```bash
+./gradlew :composeApp:assembleDebug                                  # Android
+./gradlew :composeApp:testDebugUnitTest :composeApp:desktopTest      # tests
+./gradlew :composeApp:run                                            # desktop app
+./gradlew check                                                      # full check
+./gradlew :composeApp:linkDebugFrameworkIosSimulatorArm64            # macOS only
+./gradlew :composeApp:iosSimulatorArm64Test                          # macOS only
+```
+
+Lint: run the project's configured formatter/static analysis (`ktlint`, `detekt`) when
+present; do not introduce a new lint tool as part of an unrelated change.
+
+On Windows or Linux, skip the iOS tasks and say so in the summary. Apple targets cannot
+compile off macOS.
+
+## KMP rules (overrides Android-only habits)
+
+- Layers: `ui -> presentation -> domain <- data`. `domain` is pure Kotlin — no
+  `android.*`, `java.*`, `platform.*`, Compose, Ktor, Room or Koin APIs.
+- `commonMain` holds UI, ViewModels, domain, data and DI. Platform source sets hold only
+  entry points, engine choice, path resolution and platform capability implementations.
+- Nothing in `commonMain` imports `android.*`, `java.*`, `javax.*` or `platform.*`.
+  Check: `rg -n "^import (android|java|javax|platform)\." composeApp/src/commonMain`.
+- Platform features (file pickers, notifications, permissions, window management) are
+  `commonMain` interfaces with per-platform implementations, wired through Koin.
+- Use `expect/actual` only for thin leaves such as `httpClientEngine()` and
+  `databasePath()`; every `expect` needs an `actual` on all three platforms.
+- DI is Koin: constructor injection, `single`/`factory`/`viewModelOf`, `koinViewModel()`
+  at the screen boundary. No Hilt, no annotations, no `get()` inside business code.
+- Networking is Ktor: OkHttp on Android, Darwin on iOS, CIO on desktop.
+- Persistence is Room 3 with KSP only (never KAPT). DAOs and entities live in
+  `commonMain`; the database builder is `expect/actual` per platform.
+- Tests: `kotlin.test` in `commonTest` with fakes. MockK and JUnit 5 only in
+  `androidUnitTest` / `jvmTest`.
+- JUnit 5 parameterization is unavailable in `commonTest`; use table-driven loops.
+- Backtick test names are supported on the JVM targets; if a target rejects them, switch
+  that file to `givenX_whenY_thenZ` without backticks.
+- UI: no hardcoded colors, type or spacing that exist as tokens. Map Penpot tokens to
+  `MaterialTheme`; every screen gets a `@Preview`.
+- Material 3 Expressive APIs are version-gated — verify the component exists in the
+  resolved `material3` artifact before using it, otherwise fall back to standard
+  Material 3 or wrap it in `expect/actual`.
+
+## Skills
+
+Project skills live in `.opencode/skills/`:
+
+- `kmp-architecture` — layers, structure, naming, Koin
+- `kmp-patterns` — UDF, ViewModels, Ktor + Room 3 repositories
+- `kmp-testing` — commonTest, fakes, Turbine
+- `kmp-platform-boundaries` — source sets, expect/actual, build matrix
+- `penpot-to-compose` — Penpot tokens to Compose, previews, expressive API checks
+- `penpot-design` — direct Penpot MCP usage
+
+## Done means
+
+- Android build passes, shared tests pass, desktop builds and its tests pass.
+- On macOS, the iOS simulator framework links and `iosSimulatorArm64Test` passes.
+- On Windows/Linux, the iOS step is explicitly reported as skipped, not silently dropped.
+- No `android.*`, `java.*`, `javax.*` or `platform.*` import in `commonMain`.
+- Every new screen has a preview; every new token is in the theme, not inline.
+- No unrelated file edits, no reformatting of untouched code, no drive-by dependency bumps.
+
 <!-- trail:start -->
 ## Trail — repo context graph
 

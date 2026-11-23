@@ -151,6 +151,11 @@ ktlint {
     }
 }
 
+// One command that means "everything must pass": tests plus lint.
+tasks.named("check") {
+    dependsOn("ktlintCheck", "detekt")
+}
+
 compose.desktop {
     application {
         mainClass = "dev.openpoli.app.MainKt"

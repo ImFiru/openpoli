@@ -66,7 +66,7 @@ family — compilation breaks. Expect it to disappear when CMP retires the shim.
 ./gradlew :androidApp:assembleDebug                                # Android APK
 ./gradlew :shared:desktopTest :shared:testAndroidHostTest          # tests
 ./gradlew :shared:run                                              # desktop app
-./gradlew check                                                    # full check
+./gradlew check                                                    # tests + lint
 ./gradlew :shared:linkDebugFrameworkIosSimulatorArm64              # macOS only
 ./gradlew :shared:iosSimulatorArm64Test                             # macOS only
 ```
@@ -91,6 +91,8 @@ Lint:
 ./gradlew :shared:ktlintFormat       # apply formatting
 ./gradlew :shared:detekt             # static analysis, config/detekt/detekt.yml
 ```
+
+`./gradlew check` runs every test target plus `ktlintCheck` and `detekt`; use it before a commit.
 
 Rules are in `.editorconfig` (ktlint) and `config/detekt/detekt.yml` (detekt). Both must be
 green before a commit; CI runs them before the build. Compose functions are PascalCase and

@@ -63,6 +63,16 @@ Compose 1.13 artifacts require API 37.1 or newer.
 Android host tests are `:shared:testAndroidHostTest` (the source set is `androidHostTest`
 with the new KMP Android plugin, not `androidUnitTest`).
 
+## CI
+
+`.github/workflows/ci.yml` runs on every push to `main` and every pull request: JDK 21,
+Android SDK 37.1 + build-tools 36.0, then
+`:androidApp:assembleDebug :shared:desktopTest :shared:testAndroidHostTest`, uploading the
+debug APK and the test reports on failure.
+
+CI does not build iOS — GitHub's hosted runners are Linux/macOS, and the macOS runner is
+not configured. A red run means the "done means" list was not met locally.
+
 Lint: run the project's configured formatter/static analysis (`ktlint`, `detekt`) when
 present; do not introduce a new lint tool as part of an unrelated change.
 

@@ -40,6 +40,8 @@ Rules:
 | Corner radii | `Shapes` or a spacing/shape extension |
 | Elevation | `CardDefaults` / `Surface` elevation tokens |
 
+This project's imported Penpot mapping lives in `references/login-m3-tokens.md`.
+
 ```kotlin
 // ui/theme/Theme.kt
 private val LightColors = lightColorScheme(

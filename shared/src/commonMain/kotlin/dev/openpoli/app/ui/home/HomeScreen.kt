@@ -100,3 +100,23 @@ private fun HomeContentPreview() {
         )
     }
 }
+
+@Preview
+@Composable
+private fun HomeContentDarkPreview() {
+    AppTheme(darkTheme = true) {
+        HomeContent(
+            uiState =
+                HomeUiState(
+                    items =
+                        listOf(
+                            ItemUiState(id = 1, title = "Ship the scaffold"),
+                            ItemUiState(id = 2, title = "Map Penpot tokens"),
+                        ),
+                    isLoading = false,
+                ),
+            platform = "Preview",
+            onAction = {},
+        )
+    }
+}

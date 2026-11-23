@@ -42,6 +42,8 @@ Modules:
 | Ktor | 3.6.1 |
 | Room 3 / bundled SQLite | 3.0.3 / 2.7.1 |
 | lifecycle (driven by CMP) | 2.11.0-beta01 |
+| ktlint plugin / engine | 14.2.0 / 1.8.0 |
+| detekt | 2.0.0-alpha.6 (`dev.detekt`) |
 
 AGP 9 removed the `com.android.application` + Kotlin Multiplatform combination, so the
 old two-flag workaround (`android.builtInKotlin=false`, `android.newDsl=false`) is gone.
@@ -94,10 +96,29 @@ Lint:
 
 `./gradlew check` runs every test target plus `ktlintCheck` and `detekt`; use it before a commit.
 
-Rules are in `.editorconfig` (ktlint) and `config/detekt/detekt.yml` (detekt). Both must be
-green before a commit; CI runs them before the build. Compose functions are PascalCase and
-exempt via `ktlint_function_naming_ignore_when_annotated_with = Composable`. Generated KSP
-code is excluded from ktlint.
+Rules are in `.editorconfig` (ktlint) and `config/detekt/detekt.yml` (detekt).
+
+ktlint: the Gradle plugin defaults to an older engine, so `ktlint.version` is pinned to the
+current CLI (1.8.0). Generated KSP/Room sources are excluded twice: by the plugin filter and
+by `[**/build/**] ktlint = disabled` in `.editorconfig` — the latter is what actually works
+for the desktop source set, do not remove it. Compose functions are PascalCase and exempt via
+`ktlint_function_naming_ignore_when_annotated_with = Composable`.
+
+detekt: `dev.detekt` 2.x is alpha-only; 2.0.0-alpha.6 is the newest published, and the last
+stable line is `io.gitlab.arturbosch.detekt` 1.23.8. Detekt 2 renamed config keys
+(`LongMethod.allowedLines`, `LongParameterList.allowedFunctionParameters`), so
+`config/detekt/detekt.yml` uses the 2.x schema. A stable detekt 2 means bumping the catalog
+entry only.
+
+### Local hooks
+
+```bash
+git config core.hooksPath .githooks    # once per clone
+```
+
+`.githooks/pre-commit` runs `:shared:ktlintCheck` only — fast, formatting-only, so a commit
+fails in seconds instead of turning CI red minutes later. Tests and detekt stay in CI and in
+`./gradlew check`. Bypass deliberately with `git commit --no-verify`; CI remains the gate.
 
 On Windows PowerShell, invoke `.\gradlew.bat` — the extension-less `./gradlew` is a
 bash/zsh script and will not run there. In Git Bash or WSL, `./gradlew` works.

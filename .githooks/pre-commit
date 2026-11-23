@@ -1,0 +1,14 @@
+#!/bin/sh
+# Fast local gate. Formatting only, so a commit fails in seconds instead of
+# turning CI red minutes later. CI still runs tests and detekt.
+set -e
+
+repo_root=$(git rev-parse --show-toplevel)
+cd "$repo_root"
+
+# gradlew is a POSIX sh script; running it through sh works on Windows too.
+if [ -x ./gradlew ]; then
+    ./gradlew -q :shared:ktlintCheck
+else
+    sh ./gradlew -q :shared:ktlintCheck
+fi

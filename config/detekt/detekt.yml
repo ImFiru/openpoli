@@ -1,24 +1,19 @@
-build:
-  maxIssues: 0
-
 config:
   validation: true
   warningsAsErrors: false
 
 complexity:
   LongMethod:
-    threshold: 80
+    allowedLines: 80
   LongParameterList:
-    functionThreshold: 8
-    constructorThreshold: 10
+    allowedFunctionParameters: 8
+    allowedConstructorParameters: 10
 
 style:
   MagicNumber:
     ignoreAnnotated: ['Composable', 'Preview']
-    ignorePropertyDeclaration: true
     ignoreNumbers: ['-1', '0', '1', '2']
-  UnusedPrivateMember:
-    allowedNames: '.*Preview'
+    ignorePropertyDeclaration: true
   MaxLineLength:
     maxLineLength: 120
     excludeCommentStatements: true

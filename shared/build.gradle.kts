@@ -141,13 +141,12 @@ detekt {
 }
 
 ktlint {
+    // The Gradle plugin defaults to an older engine; pin the current CLI.
+    version.set("1.8.0")
     // Never lint generated KSP/Room code or Gradle output.
     filter {
-        exclude { element ->
-            element.file.path
-                .replace('\\', '/')
-                .contains("/build/")
-        }
+        exclude("**/build/**")
+        exclude("**/generated/**")
     }
 }
 

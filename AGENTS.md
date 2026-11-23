@@ -41,7 +41,7 @@ Modules:
 | Koin | 4.2.2 |
 | Ktor | 3.6.1 |
 | Room 3 / bundled SQLite | 3.0.3 / 2.7.1 |
-| lifecycle (driven by CMP) | 2.11.0-beta01 |
+| lifecycle (driven by CMP) | 2.11.0 |
 | ktlint plugin / engine | 14.2.0 / 1.8.0 |
 | detekt | 2.0.0-alpha.6 (`dev.detekt`) |
 
@@ -54,13 +54,17 @@ Compose 1.13 artifacts require API 37.1 or newer.
 
 ### Known third-party warnings
 
-`:shared:assemble --warning-mode all` still prints ten `KLIB loader: The same
-'unique_name=…' found in more than one library` warnings for `lifecycle-*`,
-`savedstate-*`, `annotation`, `collection` and `navigationevent`. Cause: Compose
-Multiplatform 1.13.0-rc01 depends on the `org.jetbrains.androidx.*` shims, and those shims
-point at the Google `androidx.*` artifacts, so both klibs land on the classpath. Kotlin
-deduplicates by unique name; the build is correct. Do not "fix" it by excluding either
-family — compilation breaks. Expect it to disappear when CMP retires the shim.
+`:shared:assemble --warning-mode all` prints five `KLIB loader: The same 'unique_name=…'
+found in more than one library` warnings: `annotation`, `collection`, `navigationevent`,
+`savedstate` and `savedstate-compose`. Cause: Compose Multiplatform 1.13.0-rc01 pulls both
+the `org.jetbrains.compose.*-internal` shims and the Google `androidx.*` artifacts, so both
+klibs land on the classpath. Kotlin deduplicates by unique name; the build is correct. Do
+not "fix" it by excluding either family — compilation breaks. Expect it to disappear when
+CMP retires the shims.
+
+One Gradle deprecation remains, and it comes from detekt 2.0.0-alpha.6 itself:
+`Configuration.setVisible(boolean)` in `DetektBasePlugin`, removed in Gradle 11. It clears
+when detekt ships a fix. Suppressing deprecation warnings to hide it is not worth it.
 
 ## Build, test, lint
 

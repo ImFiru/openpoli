@@ -168,6 +168,33 @@ Message:
 When a request is inherently large, propose the split before starting instead of producing
 one commit nobody will review: "this is three commits: schema, repository, screen".
 
+## Delivering a task
+
+Every task is delivered as a sequence of small slices the user can watch and proofread, not
+as one big drop at the end.
+
+- **Plan first.** Before editing, reply with the slice list: for each slice give the scope
+  (one concern), the files or areas it touches, how it will be verified, and a rough size.
+  Keep it to 3–7 slices; more than that usually means several tasks.
+- **Get a go-ahead on the plan, not on every slice.** If the user does not object, proceed.
+- **One slice at a time.** Implement, verify, commit, then report in three lines: what
+  changed, how it was verified, what is next. Never bundle slices to save time.
+- **A slice is done when it builds and its own check passes.** Do not start the next slice
+  while the previous one is unverified or uncommitted.
+- **Stop and ask** when a slice exceeds its stated scope or the commit size ceiling, needs a
+  new dependency or version bump, changes a plan decision, or fails verification twice.
+- If the user asks for stricter review, they will say "stop after each slice"; then wait for
+  approval before starting the next one.
+
+Example plan for a screen-from-design task:
+
+```
+1. Tokens and theme          Theme.kt, reference doc         check
+2. Stateless UI              LoginScreen.kt + previews        check
+3. State, ViewModel, actions presentation/, ui state          check + desktopTest
+4. Wiring and navigation     Koin module, App()                check + assembleDebug
+```
+
 ## KMP rules (overrides Android-only habits)
 
 - Layers: `ui -> presentation -> domain <- data`. `domain` is pure Kotlin — no

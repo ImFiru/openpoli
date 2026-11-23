@@ -31,16 +31,17 @@ Modules:
 
 | Piece | Version |
 | --- | --- |
-| Kotlin / Compose compiler | 2.4.20 |
+| Kotlin / Compose compiler | 2.4.21 |
 | Compose Multiplatform | 1.13.0-rc01 |
 | material3 | 1.13.0-rc01 |
 | Android Gradle Plugin | 9.5.2 |
-| Gradle wrapper | 9.6.1 |
+| Gradle wrapper | 9.9.2 |
 | compileSdk / targetSdk | 37 with `compileSdkMinor = 1` (i.e. 37.1) |
 | minSdk | 24 |
 | Koin | 4.2.2 |
 | Ktor | 3.6.1 |
 | Room 3 / bundled SQLite | 3.0.3 / 2.7.1 |
+| lifecycle (driven by CMP) | 2.11.0-beta01 |
 
 AGP 9 removed the `com.android.application` + Kotlin Multiplatform combination, so the
 old two-flag workaround (`android.builtInKotlin=false`, `android.newDsl=false`) is gone.
@@ -48,6 +49,16 @@ The project uses the supported layout instead: a KMP library module plus a thin
 application module. The KMP module's Android config lives in `kotlin { android { … } }`
 with `compileSdk { version = release(37) { minorApiLevel = 1 } }`.
 Compose 1.13 artifacts require API 37.1 or newer.
+
+### Known third-party warnings
+
+`:shared:assemble --warning-mode all` still prints ten `KLIB loader: The same
+'unique_name=…' found in more than one library` warnings for `lifecycle-*`,
+`savedstate-*`, `annotation`, `collection` and `navigationevent`. Cause: Compose
+Multiplatform 1.13.0-rc01 depends on the `org.jetbrains.androidx.*` shims, and those shims
+point at the Google `androidx.*` artifacts, so both klibs land on the classpath. Kotlin
+deduplicates by unique name; the build is correct. Do not "fix" it by excluding either
+family — compilation breaks. Expect it to disappear when CMP retires the shim.
 
 ## Build, test, lint
 

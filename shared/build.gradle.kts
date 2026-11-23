@@ -10,6 +10,11 @@ plugins {
 }
 
 kotlin {
+    // Room's documented KMP setup requires `expect object AppDatabaseConstructor`.
+    compilerOptions {
+        freeCompilerArgs.add("-Xexpect-actual-classes")
+    }
+
     // Android library target. The application wrapper lives in :androidApp,
     // because AGP 9 no longer allows com.android.application on a KMP module.
     android {
@@ -46,9 +51,11 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
-            implementation(compose.runtime)
-            implementation(compose.foundation)
-            implementation(compose.ui)
+            // Compose's `compose.runtime/foundation/ui` accessors are deprecated;
+            // reference the artifacts they expand to.
+            implementation("org.jetbrains.compose.runtime:runtime:${libs.versions.compose.get()}")
+            implementation("org.jetbrains.compose.foundation:foundation:${libs.versions.compose.get()}")
+            implementation("org.jetbrains.compose.ui:ui:${libs.versions.compose.get()}")
             // Compose's deprecated `compose.components.uiToolingPreview` accessor,
             // replaced by the artifact it points at.
             implementation("org.jetbrains.compose.ui:ui-tooling-preview:${libs.versions.compose.get()}")
@@ -84,9 +91,7 @@ kotlin {
         getByName("desktopMain") {
             dependencies {
                 // compose.desktop.currentOs is deprecated; Compose 1.13's desktop
-                // ui artifact carries the skiko runtimes for every desktop OS and
-                // packaging strips the non-target ones.
-                implementation("org.jetbrains.compose.ui:ui:${libs.versions.compose.get()}")
+                // ui artifact (already on commonMain) carries the skiko runtimes.
                 implementation(libs.ktor.client.cio)
                 // Supplies Dispatchers.Main on the JVM; without it viewModelScope
                 // throws "Module with the Main dispatcher is missing".
@@ -110,6 +115,11 @@ dependencies {
     add("kspIosArm64", libs.room3.compiler)
     add("kspIosSimulatorArm64", libs.room3.compiler)
     add("kspDesktop", libs.room3.compiler)
+}
+
+ksp {
+    // Room exports its schema JSON here; commit it when migrations begin.
+    arg("room.schemaLocation", "$projectDir/schemas")
 }
 
 compose.desktop {

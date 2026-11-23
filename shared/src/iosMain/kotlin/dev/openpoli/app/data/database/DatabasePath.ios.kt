@@ -1,11 +1,15 @@
 package dev.openpoli.app.data.database
 
+import androidx.room3.Room
+import androidx.sqlite.driver.bundled.BundledSQLiteDriver
+import kotlinx.cinterop.ExperimentalForeignApi
 import platform.Foundation.NSApplicationSupportDirectory
 import platform.Foundation.NSFileManager
 import platform.Foundation.NSSearchPathForDirectoriesInDomains
 import platform.Foundation.NSUserDomainMask
 
-actual fun databasePath(): String {
+@OptIn(ExperimentalForeignApi::class)
+actual fun createDatabase(): AppDatabase {
     val directories = NSSearchPathForDirectoriesInDomains(
         directory = NSApplicationSupportDirectory,
         domainMask = NSUserDomainMask,
@@ -20,5 +24,9 @@ actual fun databasePath(): String {
         attributes = null,
         error = null,
     )
-    return "$directory/openpoli.db"
+
+    return Room.databaseBuilder<AppDatabase>(name = "$directory/openpoli.db")
+        .setDriver(BundledSQLiteDriver())
+        .fallbackToDestructiveMigration(dropAllTables = true)
+        .build()
 }

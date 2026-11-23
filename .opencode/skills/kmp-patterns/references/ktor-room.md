@@ -150,56 +150,99 @@ Rules:
 - DAOs are `suspend` or return `Flow`; never blocking.
 - One DAO per aggregate; no DAO knows about domain models.
 
-## Database builder — expect/actual
+## Database builder — expect/actual per platform
+
+Room 3 keeps `Room.databaseBuilder` in the platform artifacts, not in the common
+`expect object Room`, and requires a generated `RoomDatabaseConstructor` on non-Android
+targets. Both are official requirements, so the builder is `expect/actual`.
 
 ```kotlin
-// commonMain/data/database/DatabaseFactory.kt
-expect fun databasePath(): String
-
+// commonMain/data/database/AppDatabase.kt
 @Database(entities = [ItemEntity::class], version = 1)
+@ConstructedBy(AppDatabaseConstructor::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun itemDao(): ItemDao
 }
 
+// The Room compiler generates the actual implementations per target.
+@Suppress("KotlinNoActualForExpect")
+expect object AppDatabaseConstructor : RoomDatabaseConstructor<AppDatabase> {
+    override fun initialize(): AppDatabase
+}
+
+/** Platform part: only the file path differs. */
+expect fun databaseBuilder(): RoomDatabase.Builder<AppDatabase>
+
+/** Shared part: driver, optional coroutine context, migration policy. */
 fun createDatabase(): AppDatabase =
-    Room.databaseBuilder<AppDatabase>(name = databasePath())
+    databaseBuilder()
         .setDriver(BundledSQLiteDriver())
-        .setQueryCoroutineContext(Dispatchers.IO)
         .fallbackToDestructiveMigration(dropAllTables = true)
         .build()
 ```
 
 ```kotlin
-// androidMain
-actual fun databasePath(): String =
-    androidContext().getDatabasePath("app.db").absolutePath
+// androidMain — Context comes from Koin
+actual fun databaseBuilder(): RoomDatabase.Builder<AppDatabase> {
+    val context = GlobalContext.get().get<Context>()
+    val file = context.getDatabasePath("app.db").apply { parentFile?.mkdirs() }
+    return Room.databaseBuilder<AppDatabase>(context = context, name = file.absolutePath)
+}
 
 // iosMain
-actual fun databasePath(): String {
-    val dir = NSFileManager.defaultManager.URLForDirectory(
-        directory = NSApplicationSupportDirectory,
-        inDomain = NSUserDomainMask,
-        appropriateForURL = null,
-        create = true,
-        error = null,
-    )!!
-    return "${dir.path}/app.db"
+@OptIn(ExperimentalForeignApi::class)
+actual fun databaseBuilder(): RoomDatabase.Builder<AppDatabase> {
+    val directory = NSSearchPathForDirectoriesInDomains(
+        NSApplicationSupportDirectory,
+        NSUserDomainMask,
+        true,
+    ).first() as String
+    NSFileManager.defaultManager.createDirectoryAtPath(directory, true, null, null)
+    return Room.databaseBuilder<AppDatabase>(name = "$directory/app.db")
 }
 
 // desktopMain
-actual fun databasePath(): String {
-    val dir = File(System.getProperty("user.dir"), "build/app-data").apply { mkdirs() }
-    return File(dir, "app.db").absolutePath
+actual fun databaseBuilder(): RoomDatabase.Builder<AppDatabase> {
+    val directory = File(System.getProperty("user.home"), ".app").apply { mkdirs() }
+    return Room.databaseBuilder<AppDatabase>(name = File(directory, "app.db").absolutePath)
 }
+```
+
+Build wiring:
+
+```kotlin
+// shared/build.gradle.kts
+plugins {
+    alias(libs.plugins.ksp)
+}
+
+dependencies {
+    add("kspAndroid", libs.room3.compiler)
+    add("kspIosArm64", libs.room3.compiler)
+    add("kspIosSimulatorArm64", libs.room3.compiler)
+    add("kspDesktop", libs.room3.compiler)
+}
+
+ksp { arg("room.schemaLocation", "$projectDir/schemas") }
 ```
 
 Notes:
 
-- `BundledSQLiteDriver` everywhere: same SQLite build on every target, no reliance on the host's system SQLite.
-- `fallbackToDestructiveMigration(dropAllTables = true)` is a starting point only. Replace it with migrations before shipping.
-- On desktop, prefer a real user data directory (`%APPDATA%`, `~/Library/Application Support`, `~/.local/share`) over `build/` once packaging exists.
-- iOS actuals need `NSFileManager` from `platform.Foundation` — that import is legal in `iosMain` and forbidden in `commonMain`.
-- If the Android actual needs `Context`, resolve it through Koin (`androidContext()`), not a static holder.
+- `expect object AppDatabaseConstructor` is what makes the beta warning appear; add
+  `-Xexpect-actual-classes` to the Kotlin compiler options.
+- `BundledSQLiteDriver` everywhere: same SQLite build on every target, no reliance on the
+  host's system SQLite.
+- Commit the generated `schemas/` directory once migrations exist; it is the input to
+  Room's schema diffing.
+- Do not call `.setQueryCoroutineContext(Dispatchers.IO)` in `commonMain`: `Dispatchers.IO`
+  is not available on every target. Leave the default or inject a dispatcher.
+- `fallbackToDestructiveMigration(dropAllTables = true)` is a starting point only. Replace
+  it with migrations before shipping.
+- On desktop, prefer a real user data directory (`%APPDATA%`, `~/Library/Application
+  Support`, `~/.local/share`) over `build/` once packaging exists.
+- iOS actuals need `platform.Foundation` and `kotlinx.cinterop.ExperimentalForeignApi` —
+  those imports are legal in `iosMain` and forbidden in `commonMain`.
+- If the Android actual needs `Context`, resolve it through Koin, not a static holder.
 
 ## Repository implementation
 

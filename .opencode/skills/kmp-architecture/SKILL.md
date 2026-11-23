@@ -33,10 +33,10 @@ Rules:
 
 ## 2. Recommended project structure
 
-Feature-first, source-set-first. One shared module (`composeApp`) is the default; split into Gradle modules only when a boundary earns it.
+Feature-first, source-set-first. Two Gradle modules: `:shared` (the KMP library) and `:androidApp` (packaging only). Add more modules only when a boundary earns it.
 
 ```text
-composeApp/src/
+shared/src/
 ├── commonMain/kotlin/com/company/app/
 │   ├── App.kt                        # shared root composable
 │   ├── di/

@@ -3,13 +3,17 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
 
+    <!--
+      The Android entry points live in :shared/androidMain so the shared module owns
+      all platform glue. This module only packages the app.
+    -->
     <application
-        android:name=".OpenPoliApp"
+        android:name="dev.openpoli.app.OpenPoliApp"
         android:label="OpenPoli"
         android:theme="@android:style/Theme.Material.Light.NoActionBar">
 
         <activity
-            android:name=".MainActivity"
+            android:name="dev.openpoli.app.MainActivity"
             android:exported="true"
             android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|uiMode">
             <intent-filter>

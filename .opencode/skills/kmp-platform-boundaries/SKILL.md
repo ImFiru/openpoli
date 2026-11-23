@@ -21,6 +21,15 @@ No native desktop targets, no web. Do not add targets speculatively; each one is
 
 ## 2. What lives where
 
+Module layout matters before source sets do. With AGP 9, `com.android.application` cannot
+live on a KMP module, so the supported shape is:
+
+- `:shared` — KMP library, applies `com.android.kotlin.multiplatform.library`. All Kotlin.
+- `:androidApp` — `com.android.application`, manifest only, depends on `:shared`.
+
+The Android config for the KMP module lives inside `kotlin { android { … } }`, not in a
+top-level `android { }` block.
+
 | Concern | Source set |
 | --- | --- |
 | Compose UI, ViewModels, domain, data, DI modules | `commonMain` |
@@ -28,7 +37,7 @@ No native desktop targets, no web. Do not add targets speculatively; each one is
 | `MainViewController`, `NSFileManager`, Darwin engine | `iosMain` |
 | `main()`, `Window`, `File`-based paths, CIO engine | `desktopMain` |
 | Shared tests | `commonTest` |
-| Platform glue tests | `androidUnitTest`, `iosTest`, `desktopTest` |
+| Platform glue tests | `androidHostTest`, `iosTest`, `desktopTest` |
 
 Rules:
 
@@ -54,7 +63,7 @@ NS*.kt / kotlinx.cinterop.*
 Check mechanically:
 
 ```bash
-rg -n "^import (android|java|javax|platform)\." composeApp/src/commonMain && echo "VIOLATION"
+rg -n "^import (android|java|javax|platform)\." shared/src/commonMain && echo "VIOLATION"
 ```
 
 `java.*` is the easiest rule to break by accident: `java.util.UUID`, `java.time.*`, `java.math.BigDecimal`, `java.io.File`. Use `kotlin.uuid.Uuid`, `kotlinx-datetime`, `kotlin.time`, `Long` cents or a `Money` value class, and a `Path`-style interface in `commonMain`.
@@ -115,20 +124,20 @@ Rules:
 
 ## 6. After every feature: checklist
 
-Run from the repo root. Module name is `composeApp`; adjust if the project differs.
+Run from the repo root. The KMP module is `:shared`; the Android app wrapper is `:androidApp`. Adjust if the layout differs.
 
 ```bash
 # 1. shared + Android
-./gradlew :composeApp:assembleDebug
+./gradlew :androidApp:assembleDebug
 
 # 2. shared unit tests (runs commonTest on every target)
-./gradlew :composeApp:testDebugUnitTest :composeApp:desktopTest
+./gradlew :shared:desktopTest :shared:testAndroidHostTest
 
 # 3. desktop app
-./gradlew :composeApp:run
+./gradlew :shared:run
 
 # 4. iOS — macOS hosts only
-./gradlew :composeApp:linkDebugFrameworkIosSimulatorArm64 :composeApp:iosSimulatorArm64Test
+./gradlew :shared:linkDebugFrameworkIosSimulatorArm64 :shared:iosSimulatorArm64Test
 ```
 
 On a non-macOS host, **skip step 4**. Apple targets are disabled there, so the tasks do
@@ -142,7 +151,7 @@ already present; the Xcode project is not.
 
 Also confirm:
 
-- [ ] `rg -n "^import (android|java|javax|platform)\." composeApp/src/commonMain` returns nothing
+- [ ] `rg -n "^import (android|java|javax|platform)\." shared/src/commonMain` returns nothing
 - [ ] every new `expect` has three `actual`s
 - [ ] every screen has a `@Preview`
 - [ ] no design token hardcoded (colors, type, dp) — see `penpot-to-compose`

@@ -25,7 +25,7 @@ implementation(libs.turbine)
 ```
 
 ```kotlin
-// androidUnitTest / jvmTest only — never commonTest
+// androidHostTest / desktopTest only — never commonTest
 implementation(libs.mockk)
 implementation(libs.junit.jupiter)   // JUnit 5 needs the junit5 Gradle plugin
 ```

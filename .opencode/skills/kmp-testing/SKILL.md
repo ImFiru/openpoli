@@ -1,6 +1,6 @@
 ---
 name: kmp-testing
-description: "Defines testing standards for Kotlin Multiplatform projects: kotlin.test in commonTest, kotlinx-coroutines-test, Turbine for Flow, and hand-written fakes instead of mocks. Use this skill whenever writing, reviewing or refactoring unit tests for ViewModels, use cases, mappers, repositories, DAOs or other shared Kotlin code, and when deciding whether a test belongs in commonTest, androidUnitTest or jvmTest."
+description: "Defines testing standards for Kotlin Multiplatform projects: kotlin.test in commonTest, kotlinx-coroutines-test, Turbine for Flow, and hand-written fakes instead of mocks. Use this skill whenever writing, reviewing or refactoring unit tests for ViewModels, use cases, mappers, repositories, DAOs or other shared Kotlin code, and when deciding whether a test belongs in commonTest, androidHostTest or desktopTest."
 license: MIT
 ---
 
@@ -13,8 +13,8 @@ Test behavior, not implementation, and keep everything that can be shared in `co
 | Test kind | Source set | Tools |
 | --- | --- | --- |
 | ViewModel, use case, mapper, repository, fake-driven logic | `commonTest` | `kotlin.test`, `kotlinx-coroutines-test`, Turbine, hand-written fakes |
-| Android-specific glue (Context, framework adapters) | `androidUnitTest` | JUnit 5 **or** JUnit 4, MockK allowed |
-| Desktop/JVM glue (files, system properties) | `jvmTest` | JUnit 5, MockK allowed |
+| Android-specific glue (Context, framework adapters) | `androidHostTest` | JUnit 5 **or** JUnit 4, MockK allowed |
+| Desktop/JVM glue (files, system properties) | `desktopTest` | JUnit 5, MockK allowed |
 | iOS glue | `iosTest` | `kotlin.test` only |
 | True platform/instrumented behavior | `androidInstrumentedTest` | platform runners |
 
@@ -23,7 +23,7 @@ Rules:
 - Default every business test to `commonTest`.
 - A test that only runs on one target is a signal the code under test is not portable.
 - No MockK, no Mockito, no JUnit 5 in `commonTest` — they do not resolve on iOS.
-- JUnit 5 in `androidUnitTest` needs the JUnit 5 Gradle plugin; plain Android unit tests default to JUnit 4.
+- JUnit 5 in `androidHostTest` needs the JUnit 5 Gradle plugin; plain Android host tests default to JUnit 4.
 
 ## 2. Test naming
 
@@ -134,7 +134,7 @@ Rules:
 - Fakes implement the real interface; the compiler keeps them honest.
 - Expose intent-revealing helpers (`emit`, `failWith`), not `verify`-style recording.
 - One fake per interface, in `commonTest`, reusable across features.
-- MockK is allowed only in `androidUnitTest`/`jvmTest`, and only for types you cannot fake reasonably (final third-party classes).
+- MockK is allowed only in `androidHostTest`/`desktopTest`, and only for types you cannot fake reasonably (final third-party classes).
 
 ## 7. Flow testing with Turbine
 
@@ -179,7 +179,7 @@ Rules:
 
 - Keep the case list small and readable.
 - Always pass the input in the failure `message`.
-- `@ParameterizedTest`, `@MethodSource`, `@CsvSource`, `@TestFactory` are allowed only in `jvmTest`/`androidUnitTest`.
+- `@ParameterizedTest`, `@MethodSource`, `@CsvSource`, `@TestFactory` are allowed only in `desktopTest`/`androidHostTest`.
 - Never use `java.math.BigDecimal` or any `java.*` type in `commonTest`; use `Long` cents, the project's `Money` value class, or `kotlinx.serialization` types.
 
 ## 9. Coroutines and dispatchers

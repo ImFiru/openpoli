@@ -16,8 +16,16 @@ machine, not on the Windows dev host.
 | Tests | `kotlin.test` + `kotlinx-coroutines-test` + Turbine + hand-written fakes in `commonTest` |
 
 Targets: `androidTarget()`, `iosArm64()`, `iosSimulatorArm64()`, and one `jvm("desktop")`
-covering Windows, macOS and Linux. No native desktop targets, no web. The shared module
-is `composeApp`.
+covering Windows, macOS and Linux. No native desktop targets, no web.
+
+Modules:
+
+- `:shared` — the KMP library (`com.android.kotlin.multiplatform.library`, not
+  `com.android.application`). All Kotlin, Compose UI, domain, data and DI.
+- `:androidApp` — packaging only (`com.android.application`): manifest and
+  `implementation(project(":shared"))`. It contains no Kotlin, so no Compose compiler is
+  needed there. AGP 9 no longer allows `com.android.application` on a KMP module, which is
+  why this split exists.
 
 ### Toolchain pins (verified building on this machine)
 
@@ -34,21 +42,26 @@ is `composeApp`.
 | Ktor | 3.6.1 |
 | Room 3 / bundled SQLite | 3.0.3 / 2.7.1 |
 
-AGP 9 rejects `com.android.application` + Kotlin Multiplatform unless
-`android.builtInKotlin=false` and `android.newDsl=false` are set in `gradle.properties`;
-both are required and already present. Compose 1.13 artifacts also require compiling
-against API 37.1 or newer, which is why `compileSdkMinor` is set.
+AGP 9 removed the `com.android.application` + Kotlin Multiplatform combination, so the
+old two-flag workaround (`android.builtInKotlin=false`, `android.newDsl=false`) is gone.
+The project uses the supported layout instead: a KMP library module plus a thin
+application module. The KMP module's Android config lives in `kotlin { android { … } }`
+with `compileSdk { version = release(37) { minorApiLevel = 1 } }`.
+Compose 1.13 artifacts require API 37.1 or newer.
 
 ## Build, test, lint
 
 ```bash
-./gradlew :composeApp:assembleDebug                                  # Android
-./gradlew :composeApp:testDebugUnitTest :composeApp:desktopTest      # tests
-./gradlew :composeApp:run                                            # desktop app
-./gradlew check                                                      # full check
-./gradlew :composeApp:linkDebugFrameworkIosSimulatorArm64            # macOS only
-./gradlew :composeApp:iosSimulatorArm64Test                          # macOS only
+./gradlew :androidApp:assembleDebug                                # Android APK
+./gradlew :shared:desktopTest :shared:testAndroidHostTest          # tests
+./gradlew :shared:run                                              # desktop app
+./gradlew check                                                    # full check
+./gradlew :shared:linkDebugFrameworkIosSimulatorArm64              # macOS only
+./gradlew :shared:iosSimulatorArm64Test                             # macOS only
 ```
+
+Android host tests are `:shared:testAndroidHostTest` (the source set is `androidHostTest`
+with the new KMP Android plugin, not `androidUnitTest`).
 
 Lint: run the project's configured formatter/static analysis (`ktlint`, `detekt`) when
 present; do not introduce a new lint tool as part of an unrelated change.
@@ -67,7 +80,7 @@ expected output — that is not a broken build.
 - `commonMain` holds UI, ViewModels, domain, data and DI. Platform source sets hold only
   entry points, engine choice, path resolution and platform capability implementations.
 - Nothing in `commonMain` imports `android.*`, `java.*`, `javax.*` or `platform.*`.
-  Check: `rg -n "^import (android|java|javax|platform)\." composeApp/src/commonMain`.
+  Check: `rg -n "^import (android|java|javax|platform)\." shared/src/commonMain`.
 - Platform features (file pickers, notifications, permissions, window management) are
   `commonMain` interfaces with per-platform implementations, wired through Koin.
 - Use `expect/actual` only for thin leaves such as `httpClientEngine()` and
@@ -78,7 +91,7 @@ expected output — that is not a broken build.
 - Persistence is Room 3 with KSP only (never KAPT). DAOs and entities live in
   `commonMain`; the database builder is `expect/actual` per platform.
 - Tests: `kotlin.test` in `commonTest` with fakes. MockK and JUnit 5 only in
-  `androidUnitTest` / `jvmTest`.
+  `androidHostTest` / `desktopTest`.
 - JUnit 5 parameterization is unavailable in `commonTest`; use table-driven loops.
 - Backtick test names are supported on the JVM targets; if a target rejects them, switch
   that file to `givenX_whenY_thenZ` without backticks.

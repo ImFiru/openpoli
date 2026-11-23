@@ -2,7 +2,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
-    alias(libs.plugins.androidApplication)
+    alias(libs.plugins.androidKotlinMultiplatformLibrary)
     alias(libs.plugins.kotlinSerialization)
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
@@ -10,7 +10,19 @@ plugins {
 }
 
 kotlin {
-    androidTarget {
+    // Android library target. The application wrapper lives in :androidApp,
+    // because AGP 9 no longer allows com.android.application on a KMP module.
+    android {
+        namespace = "dev.openpoli.app.shared"
+        compileSdk {
+            version = release(37) {
+                minorApiLevel = 1
+            }
+        }
+        minSdk = 24
+
+        withHostTest {}
+
         compilerOptions {
             jvmTarget.set(JvmTarget.JVM_17)
         }
@@ -19,7 +31,6 @@ kotlin {
     iosArm64()
     iosSimulatorArm64()
 
-    // Framework for the eventual Xcode project. Linking requires macOS.
     listOf(iosArm64(), iosSimulatorArm64()).forEach { iosTarget ->
         iosTarget.binaries.framework {
             baseName = "ComposeApp"
@@ -38,7 +49,9 @@ kotlin {
             implementation(compose.runtime)
             implementation(compose.foundation)
             implementation(compose.ui)
-            implementation(compose.components.uiToolingPreview)
+            // Compose's deprecated `compose.components.uiToolingPreview` accessor,
+            // replaced by the artifact it points at.
+            implementation("org.jetbrains.compose.ui:ui-tooling-preview:${libs.versions.compose.get()}")
             implementation(libs.compose.material3)
 
             implementation(libs.androidx.lifecycle.viewmodel)
@@ -68,10 +81,18 @@ kotlin {
             implementation(libs.ktor.client.darwin)
         }
 
-        val desktopMain by getting {
+        getByName("desktopMain") {
             dependencies {
-                implementation(compose.desktop.currentOs)
+                // compose.desktop.currentOs is deprecated; Compose 1.13's desktop
+                // ui artifact carries the skiko runtimes for every desktop OS and
+                // packaging strips the non-target ones.
+                implementation("org.jetbrains.compose.ui:ui:${libs.versions.compose.get()}")
                 implementation(libs.ktor.client.cio)
+                // Supplies Dispatchers.Main on the JVM; without it viewModelScope
+                // throws "Module with the Main dispatcher is missing".
+                implementation(libs.kotlinx.coroutines.swing)
+                // Ktor's CIO engine logs through SLF4J; without a provider it warns.
+                implementation(libs.slf4j.simple)
             }
         }
 
@@ -89,25 +110,6 @@ dependencies {
     add("kspIosArm64", libs.room3.compiler)
     add("kspIosSimulatorArm64", libs.room3.compiler)
     add("kspDesktop", libs.room3.compiler)
-}
-
-android {
-    namespace = "dev.openpoli.app"
-    compileSdk = 37
-    compileSdkMinor = 1
-
-    defaultConfig {
-        applicationId = "dev.openpoli.app"
-        minSdk = 24
-        targetSdk = 37
-        versionCode = 1
-        versionName = "0.1.0"
-    }
-
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
-    }
 }
 
 compose.desktop {

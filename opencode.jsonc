@@ -1,0 +1,25 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+
+  // Project-local MCP servers. These only load while working inside this
+  // project (or a subdirectory of it).
+  "mcp": {
+    "servers": {
+      // Trail-code (https://github.com/trailhq/Trail-Code): code map + team
+      // learnings for this repo. `trail init` wired this server plus the
+      // fenced section in AGENTS.md.
+      "trail": {
+        "type": "local",
+        "command": ["npx", "-y", "@trailhq/trail-code", "mcp"],
+        "cwd": "."
+      },
+      "penpot": {
+        "type": "remote",
+        // The user token lives in .secrets/penpot-token, which is gitignored.
+        // {file:...} is expanded from the config file's own directory, so the
+        // secret never has to appear in this file.
+        "url": "https://design.penpot.app/mcp/stream?userToken={file:./.secrets/penpot-token}"
+      }
+    }
+  }
+}

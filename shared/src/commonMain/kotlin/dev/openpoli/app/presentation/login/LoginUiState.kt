@@ -30,3 +30,21 @@ sealed interface LoginUiAction {
 
     data object SwitchLanguage : LoginUiAction
 }
+
+/** One-shot effects; navigation and auth land here once they exist. */
+@Immutable
+sealed interface LoginUiEvent {
+    data class ShowMessage(
+        val message: String,
+    ) : LoginUiEvent
+
+    data class LoginRequested(
+        val username: String,
+    ) : LoginUiEvent
+
+    data object OpenForgotPassword : LoginUiEvent
+
+    data object ToggleTheme : LoginUiEvent
+
+    data object OpenLanguagePicker : LoginUiEvent
+}

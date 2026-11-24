@@ -13,6 +13,7 @@ import dev.openpoli.app.domain.repository.ItemRepository
 import dev.openpoli.app.domain.usecase.ObserveItemsUseCase
 import dev.openpoli.app.domain.usecase.RefreshItemsUseCase
 import dev.openpoli.app.presentation.home.HomeViewModel
+import dev.openpoli.app.presentation.login.LoginViewModel
 import io.ktor.client.HttpClient
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.factoryOf
@@ -42,6 +43,7 @@ val featureModule: Module =
         factoryOf(::ObserveItemsUseCase)
         factoryOf(::RefreshItemsUseCase)
         viewModelOf(::HomeViewModel)
+        viewModelOf(::LoginViewModel)
     }
 
 val appModules: List<Module> =
